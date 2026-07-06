@@ -1,0 +1,128 @@
+<section class="gcal-page" data-calendar-view="{{.View}}">
+  <header class="gcal-header">
+    <div>
+      <h1>{{.Title}}</h1>
+      {{if .NeedsConfig}}
+      <p class="gcal-subtitle">{{.Message}}</p>
+      {{else}}
+      <p class="gcal-subtitle">{{.ViewLabel}} for {{if eq .View "year"}}{{.Year}}{{else if eq .View "day"}}{{.DayLabel}}{{else}}{{.MonthLabel}}{{end}}</p>
+      {{end}}
+    </div>
+    {{if not .NeedsConfig}}
+    <nav class="gcal-view-tabs" aria-label="Calendar views">
+      {{range .Views}}
+      <a class="gcal-view-tab{{if .Active}} active{{end}}" href="{{.URL}}">{{.Label}}</a>
+      {{end}}
+    </nav>
+    {{end}}
+  </header>
+
+  {{if .NeedsConfig}}
+  <div class="gcal-empty">
+    <p>Add a public Google Calendar ICS URL in the extension configuration. Google Calendar ICS links usually end in <code>basic.ics</code>.</p>
+  </div>
+  {{else}}
+  <div class="gcal-toolbar">
+    <a class="gcal-button" href="{{.PrevURL}}">Previous</a>
+    <a class="gcal-button" href="{{.TodayURL}}">Today</a>
+    <a class="gcal-button" href="{{.NextURL}}">Next</a>
+  </div>
+
+  {{if .LastError}}
+  <div class="gcal-alert">Last refresh failed: {{.LastError}}</div>
+  {{end}}
+
+  {{if eq .View "calendar"}}
+  <div class="gcal-grid" role="grid" aria-label="{{.MonthLabel}}">
+    <div class="gcal-weekdays">
+      <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+    </div>
+    {{range .Weeks}}
+    <div class="gcal-week" role="row">
+      {{range .}}
+      <article class="gcal-day{{if not .InMonth}} muted{{end}}{{if .IsToday}} today{{end}}" role="gridcell">
+        <a class="gcal-day-number" href="?view=day&date={{.Date.Format "2006-01-02"}}">{{.Day}}</a>
+        {{range .Events}}
+        <a class="gcal-grid-event" href="?view=day&date={{.StartAt.Format "2006-01-02"}}">
+          <span>{{formatEventTime .}}</span>
+          <strong>{{.Summary}}</strong>
+        </a>
+        {{end}}
+      </article>
+      {{end}}
+    </div>
+    {{end}}
+  </div>
+  {{else}}
+  <div class="gcal-list">
+    {{range .Events}}
+    <article class="gcal-event">
+      <time datetime="{{.StartAt.Format "2006-01-02T15:04:05Z07:00"}}">
+        <span class="gcal-event-date">{{formatEventDate .}}</span>
+        <span class="gcal-event-time">{{formatEventTime .}}</span>
+      </time>
+      <div class="gcal-event-body">
+        <h2>{{if ne $.View "day"}}<a href="{{.DetailURL}}">{{.Summary}}</a>{{else}}{{.Summary}}{{end}}</h2>
+        {{if .DisplayLocation}}<p class="gcal-event-location">{{.DisplayLocation}}</p>{{end}}
+        {{if .DescriptionHTML}}<div class="gcal-event-description">{{.DescriptionHTML}}</div>{{end}}
+        {{if .MeetingDetailsHTML}}<div class="gcal-event-meeting">{{.MeetingDetailsHTML}}</div>{{end}}
+        {{if .MeetingDetailsLocked}}<p class="gcal-event-private">Sign in to view meeting details.</p>{{end}}
+      </div>
+    </article>
+    {{else}}
+    <div class="gcal-empty">
+      <p>No events found for this {{if eq $.View "year"}}year{{else if eq $.View "day"}}day{{else}}month{{end}}.</p>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+
+  <footer class="gcal-meta">
+    {{if .HasFetched}}Last refreshed {{.LastFetched.Format "Jan 2, 2006 3:04 PM"}}.{{else}}Calendar has not refreshed yet.{{end}}
+  </footer>
+  {{end}}
+</section>
+
+<style>
+  .gcal-page { color: #1f2933; }
+  .gcal-header { align-items: flex-start; border-bottom: 1px solid rgba(15, 23, 42, 0.12); display: flex; gap: 1.25rem; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 1rem; }
+  .gcal-header h1 { margin: 0; }
+  .gcal-subtitle { color: #52606d; margin: 0.35rem 0 0; }
+  .gcal-view-tabs, .gcal-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .gcal-view-tab, .gcal-button { border: 1px solid rgba(15, 23, 42, 0.16); color: #1f2933; display: inline-flex; font-size: 0.9rem; font-weight: 700; padding: 0.5rem 0.75rem; text-decoration: none; }
+  .gcal-view-tab.active, .gcal-button:hover { background: #104c91; border-color: #104c91; color: #fff; }
+  .gcal-toolbar { margin-bottom: 1rem; }
+  .gcal-alert, .gcal-empty { background: #fff7ed; border: 1px solid #fed7aa; margin: 1rem 0; padding: 1rem; }
+  .gcal-grid { border: 1px solid rgba(15, 23, 42, 0.14); }
+  .gcal-weekdays, .gcal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .gcal-weekdays span { background: #f3f4f6; border-bottom: 1px solid rgba(15, 23, 42, 0.14); font-size: 0.8rem; font-weight: 700; padding: 0.5rem; text-align: center; }
+  .gcal-day { border-right: 1px solid rgba(15, 23, 42, 0.1); border-bottom: 1px solid rgba(15, 23, 42, 0.1); min-height: 7rem; padding: 0.5rem; }
+  .gcal-day:nth-child(7n) { border-right: 0; }
+  .gcal-day.muted { background: #f8fafc; color: #9aa5b1; }
+  .gcal-day.today { box-shadow: inset 0 0 0 2px #104c91; }
+  .gcal-day-number { color: inherit; display: inline-flex; font-weight: 800; margin-bottom: 0.25rem; text-decoration: none; }
+  .gcal-grid-event { background: #e6f0fa; color: #102a43; display: block; font-size: 0.75rem; margin-top: 0.25rem; padding: 0.25rem; text-decoration: none; }
+  .gcal-grid-event span { display: block; opacity: 0.75; }
+  .gcal-event { border-bottom: 1px solid rgba(15, 23, 42, 0.12); display: grid; gap: 1rem; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); padding: 1rem 0; }
+  .gcal-event time { color: #52606d; font-weight: 700; }
+  .gcal-event-date, .gcal-event-time { display: block; }
+  .gcal-event-body h2 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+  .gcal-event-body h2 a { color: inherit; text-decoration-color: rgba(16, 76, 145, 0.35); text-underline-offset: 0.16em; }
+  .gcal-event-body h2 a:hover { color: #104c91; text-decoration-color: currentColor; }
+  .gcal-event-location { color: #104c91; font-weight: 700; margin: 0 0 0.35rem; }
+  .gcal-event-description { color: #52606d; margin: 0; white-space: pre-line; }
+  .gcal-event-description :first-child { margin-top: 0; }
+  .gcal-event-description :last-child { margin-bottom: 0; }
+  .gcal-event-description a { color: #104c91; font-weight: 700; }
+  .gcal-event-description ul, .gcal-event-description ol { padding-left: 1.25rem; }
+  .gcal-event-meeting { background: #eef6ff; border-left: 3px solid #104c91; color: #102a43; margin: 0.6rem 0 0; padding: 0.55rem 0.75rem; white-space: pre-line; }
+  .gcal-event-meeting a { color: #104c91; font-weight: 700; }
+  .gcal-event-private { background: #f8fafc; border-left: 3px solid #104c91; color: #52606d; margin: 0.5rem 0 0; padding: 0.5rem 0.75rem; }
+  .gcal-meta { color: #6b7280; font-size: 0.85rem; margin-top: 1rem; }
+  @media (max-width: 720px) {
+    .gcal-header, .gcal-event { display: block; }
+    .gcal-view-tabs { margin-top: 1rem; }
+    .gcal-day { min-height: 5.5rem; padding: 0.35rem; }
+    .gcal-grid-event { font-size: 0.68rem; }
+  }
+</style>
