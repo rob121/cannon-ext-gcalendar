@@ -33,8 +33,9 @@ const (
 	extensionName        = "cannon-ext-gcalendar"
 	extensionTitle       = "Google Calendar"
 	extensionDescription = "Renders public Google Calendar ICS feeds as year, month, calendar grid, and day views with a configurable refresh interval."
-	extensionVersion     = "0.1.0"
+	extensionVersion     = "0.2.0"
 	updateURLBase        = "https://github.com/rob121/cannon-ext-gcalendar/releases/download"
+	defaultAdminMenu     = "Google Calendar"
 	defaultTitle         = "Calendar"
 	defaultIntervalMin   = 60
 	defaultSummaryLength = 500
@@ -165,6 +166,7 @@ func newServer() *extension.Server {
 		Description:   extensionDescription,
 		Version:       extensionVersion,
 		UpdateURLBase: updateURLBase,
+		AdminMenuName: defaultAdminMenu,
 	}
 	app := &calendarApp{
 		info:          info,
