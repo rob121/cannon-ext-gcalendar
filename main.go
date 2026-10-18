@@ -33,7 +33,7 @@ const (
 	extensionName        = "cannon-ext-gcalendar"
 	extensionTitle       = "Google Calendar"
 	extensionDescription = "Renders public Google Calendar ICS feeds as year, month, calendar grid, and day views with a configurable refresh interval."
-	extensionVersion     = "0.2.0"
+	extensionVersion     = "0.2.1"
 	updateURLBase        = "https://github.com/rob121/cannon-ext-gcalendar/releases/download"
 	defaultAdminMenu     = "Google Calendar"
 	defaultTitle         = "Calendar"
@@ -740,18 +740,12 @@ func (s configStore) Load(section string) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := extension.MigrateConfigurationStore(db, s.table); err != nil {
-		return nil, err
-	}
 	return extension.DBConfigurationStore(db, s.table).Load(section)
 }
 
 func (s configStore) Save(section string, data map[string]any) error {
 	db, _, err := extension.OpenDB()
 	if err != nil {
-		return err
-	}
-	if err := extension.MigrateConfigurationStore(db, s.table); err != nil {
 		return err
 	}
 	return extension.DBConfigurationStore(db, s.table).Save(section, data)
